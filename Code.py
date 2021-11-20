@@ -22,10 +22,25 @@ for help, see: https://phoenixnap.com/kb/install-pip-windows
 # Import the Python modules you need
 import numpy as np
 import pandas as pd
+import pickle # allows us to store training date into a file 
+
 from sklearn.model_selectionction import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selectionction import StratifiedKFold #as opposed to KFold 
 
+import matplotlib.pyplot as plt
+import seaborn as sn 
 
+#***********************PARAMETRIZATION***********************
+# Percentage test dataset 
+percent_test = 0,2
+
+# Cross-Validation Splits
+number_of_splits = 5
+kf = StratifiedKFold(n_splits=number_of_splits)
+kf
 
 #***********************PREPATORY WORK***********************
 #Load the dataset as a Pandas Data Frame
@@ -124,14 +139,22 @@ df_final_withyear=df_copy[["year"]+variables].dropna()
 
 #-------- Split Sample
 # Training vs. Test (randomly assigned)
-#look at dataset to get an impression of its structure first -> df.shape will return (x1, x2), where x1=nrrows and x2=nrcolumns
+# look at dataset to get an impression of its structure first -> df.shape will return (x1, x2), where x1=nrrows and x2=nrcolumns
 df.shape
 
 #DELETE: https://www.youtube.com/watch?v=fwY9Qv96DJY
 #train_test_split(df[['X {= something multidimensional -> 2 brackets}']], df.Y{=explanatory variable}, test_size={percentage of the sample used for testing, e.g. 0,1})
-X_train, X_test, y_train, y_test = train_test_split()
+# add "random_state=" to keep sample allocation fixed when the code is executed multiple times
+X_train, X_test, y_train, y_test = train_test_split(test_size=)
 #results we get back from train_test_split(): X_train, X_test, y_train, y_test
-#df
+
+
+
+# Varify 
+N=len(x)
+N
+len(X_train) #should equal to percent_test*N
+len(x_test) #should equal to (1-percent_test)*N
 
 #-------- Fit Model
 #--- MODEL1: logistic regression
@@ -153,6 +176,12 @@ model.predict_proba(x_test)
 # Accuracy of the model [between 0 and 1]
 model.score(x_test, y_test)
 
+#Pickle (alternative method would be joblib from sklearn)
+with open('model_pickle', 'wb') as f: 
+    pickle.dump(model, f) #dump model into file 
+
+with open('model_pickle', 'rb') as f: 
+    mp = pickle.load(f) #mp=object
 
 #--- MODEL2: Logistic Regression with LASSO Regularization.
 # regularization parameter 
@@ -164,15 +193,44 @@ model.score(x_test, y_test)
 
 #--- MODEL3: Random Trees
 # Experiment with different tree depths, not necessarily with a cross validation
-
+# DELETE: https://www.youtube.com/watch?v=PHxYNGo8NcI
 
 
 #--- MODEL4: random forest
 ## MODEL5: neural networks.
 # Experiment with different numbers of hidden layers, and neurons for each layers, not necessarily using a cross-validation
+# DELETE: https://www.youtube.com/watch?v=ok2s1vV9XW0
+
+model4=RandomForestClassifier()
+model.fit(X_train, y_train)
+model.score(X_test, y_test) #n_estimator shows number of trees used 
+#-> can be modified by adding n_estimators= 
+model4=RandomForestClassifier(n_estimators)
+model.score(X_test, y_test)
 
 #-------- ROC curves
-#Plot the ROC curves for the best versions of your models and compute the AUROC. According to this
-# criterion, which model performs best ?
+#Plot the ROC curves for the best versions of your models and compute the AUROC. According to this criterion, which model performs best ?
+#DELETE: https://www.youtube.com/watch?v=gJo0uNL-5Qw
 
+# Cross-Validation
+from train_index, test_index in kf.split(ENTER NAME OF DATASET)
+print(train_index, test_index)
+
+def get_score(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    return model.score(x_test)
+
+get_score(LogisticRegression, X_train, X_test, y_train, y_test)
+
+for train_index, test_index in kf.split(df_final):
+    X_train, X_test, y_train, y_test = df_final[train_index], df_final[test_index], df_final[train]  
 #-------- Confusion Matrices Comparison
+#Plot the true value of y against the prediced value 
+y_predicted = model.predict(X_test)
+cm = confusion_matrix(y_test, y_predicted)
+
+%matplotlib inline
+plt.figure(figsize=(10,7))
+sn.heatmap(cm, annot=True)
+plt.xlabel('Predicted Value')
+plt.ylabel('True Value')
