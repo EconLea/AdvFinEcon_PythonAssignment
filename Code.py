@@ -1,7 +1,8 @@
+#DELETE: Add info in title in the end!
 #***********************************************************************************************
 # Title:                 XXXXXX 
 # Author:                Ana Margarida Silva da Costa & Lea Katharina Paoli
-# Matriculation Nr.      XXXXXX & E12499
+# Matriculation Nr.      XXXXXX & XXXXX
 # Purpose:               XXXXXX 
 #************************************************************************************************
 
@@ -107,7 +108,7 @@ temp_array=np.zeros(len(df_copy))
 for i in np.arange(0,len(df_copy)-2):
     temp_array[i]= 1 \
     if ( (df_copy.loc[i+1,'crisisJST']== 1) or (df_copy.loc[i+2,'crisisJST']== 1) ) else 0
-    
+
 #put the dummy in the dataframe
 df_copy["crisis_warning"]=temp_array.astype("int64")
 # create a smaller dataframe including only the variables we are
