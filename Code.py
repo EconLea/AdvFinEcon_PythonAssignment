@@ -12,11 +12,13 @@
 
 # Installation of packages [Use the command line, not the Python shell]
 """
-pip install numpy
-pip install --upgrade pandas-datareader
-pip install -U scikit-learn
+py -m pip install numpy
+py -m pip install --upgrade pandas-datareader
+py -m pip install -U scikit-learn
 
-for help, see: https://phoenixnap.com/kb/install-pip-windows
+#check whether the installation worked properly: 
+py -m pip list
+for help, see: https://phoenixnap.com/kb/install-pip-windows & https://www.youtube.com/watch?v=SrX5yo4KKGM & https://www.youtube.com/watch?v=RvbUqf3Tb1s
 """
 
 # Import the Python modules you need
@@ -28,7 +30,7 @@ from sklearn.model_selectionction import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selectionction import StratifiedKFold #as opposed to KFold 
+from sklearn.model_selection import StratifiedKFold #as opposed to KFold 
 
 import matplotlib.pyplot as plt
 import seaborn as sn 
@@ -209,7 +211,7 @@ model4=RandomForestClassifier(n_estimators)
 model.score(X_test, y_test)
 
 #-------- ROC curves
-#Plot the ROC curves for the best versions of your models and compute the AUROC. According to this criterion, which model performs best ?
+#Plot the ROC curves for the best versions of your models and compute the AUROC. 
 #DELETE: https://www.youtube.com/watch?v=gJo0uNL-5Qw
 
 # Cross-Validation
@@ -234,3 +236,11 @@ plt.figure(figsize=(10,7))
 sn.heatmap(cm, annot=True)
 plt.xlabel('Predicted Value')
 plt.ylabel('True Value')
+
+#According to this criterion, which model performs best?
+
+
+#NOTE: Bias (train error -> high error in training dataset = UNDERFIT) 
+#vs Variance (test error -> High Variance = Accuracy of the model varies sustantially with the choice of test/train dataset =OVERFIT)
+# low variance & low bias = BAlANCED FIT
+# -> Cross Validation, Regularization, Dimensionality Reduction & Ensemble Techniques
