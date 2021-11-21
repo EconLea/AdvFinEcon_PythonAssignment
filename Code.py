@@ -7,7 +7,7 @@
 #************************************************************************************************
 
 
-
+...
 #***********************IMPORT MODULES***********************
 
 # Installation of packages [Use the command line, not the Python shell]
@@ -15,6 +15,8 @@
 py -m pip install numpy
 py -m pip install --upgrade pandas-datareader
 py -m pip install -U scikit-learn
+pip install openpyxl
+pip install seaborn
 
 #check whether the installation worked properly: 
 py -m pip list
@@ -36,6 +38,7 @@ import matplotlib.pyplot as plt
 import seaborn as sn 
 
 #***********************PARAMETRIZATION***********************
+print("***********************PARAMETRIZATION***********************")
 # Percentage test dataset 
 percent_test = 0.2
 print("percent_test is set to " + str(percent_test))
@@ -52,12 +55,18 @@ print("number_of_splits is set to " + str(number_of_splits))
 
 
 #***********************PREPATORY WORK***********************
+print("***********************PREPATORY WORK***********************")
 #Load the dataset as a Pandas Data Frame
-df=pd.read_excel("path_data" ,sheet_name="Data")
+df=pd.read_excel(path_data ,sheet_name="Data", engine='openpyxl') #engine had to be added to open xlxs file
+
 
 #Creating the desired variables in a new Data Frame
 #let's make a copy, in order to preserve the original dataset
 df_copy=df.copy()
+print("this is the original:") #added
+print(df.head()) #added
+print("this is the copy:") #added
+df_copy.head() #added
 
 #let's create new (temporary) columns with the transformed variables we need:
 #-slope of the yield curve
@@ -112,7 +121,7 @@ df_copy["delta_curr_acc_gdp"]=df_copy_group["curr_acc_gdp"].diff(periods=1)
 # we will need this function to apply to the columns of the dataframe
 def lag_pct_change(x):""" Computes percentage changes """
 lag = np.array(pd.Series(x).shift(1))
-return (x - lag) / lag
+return ((x - lag) / lag) #brackets added
 
 
 # create 1 year growth rate of CPI from grouped dataframe and add
