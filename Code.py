@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import pickle # allows us to store training date into a file 
 
-from sklearn.model_selectionction import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
@@ -37,16 +37,23 @@ import seaborn as sn
 
 #***********************PARAMETRIZATION***********************
 # Percentage test dataset 
-percent_test = 0,2
+percent_test = 0.2
+print("percent_test is set to " + str(percent_test))
+
+# Input Data
+path_data = r"C:\Users\leapa\PycharmProjects\AdvFinEcon_PythonAssignment\JSTdatasetR4.xlsx"
+print("Your excel file should be stored here: " + path_data)
 
 # Cross-Validation Splits
 number_of_splits = 5
 kf = StratifiedKFold(n_splits=number_of_splits)
-kf
+print("number_of_splits is set to " + str(number_of_splits))
+
+
 
 #***********************PREPATORY WORK***********************
 #Load the dataset as a Pandas Data Frame
-df=pd.read_excel("JSTdatasetR4.xlsx",sheet_name="Data")
+df=pd.read_excel("path_data" ,sheet_name="Data")
 
 #Creating the desired variables in a new Data Frame
 #let's make a copy, in order to preserve the original dataset
