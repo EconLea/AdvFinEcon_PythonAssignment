@@ -34,9 +34,10 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from sklearn import (
-    model_selection, linear_model, ensemble, metrics, neural_network, pipeline, model_selection, tree
+    model_selection, linear_model, ensemble, metrics, neural_network, pipeline, model_selection, \
+    tree, preprocessing, pipeline
 )
-
+# the pipeline defines any number of steps that will be applied to transform the `X` data 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -215,11 +216,16 @@ print(df.info())
 #-------- Split Sample
 # Training vs. Test (randomly assigned)
 # look at dataset to get an impression of its structure first -> df.shape will return (x1, x2), where x1=nrrows and x2=nrcolumns
-df.shape()
-#df.head()
+print("shape")
+df.shape
+print("head")
+df.head()
+print("df_final.columns")
 print(df_final.columns)
 X = df_final.drop("crisis_warning", axis=1)
+print("X.columns")
 print(X.columns) #little redundant as X=df 
+
 y = df_final["crisis_warning"]
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.25)
 
@@ -250,8 +256,9 @@ print("number of obs. in training data set is " + str(len(X_train))) #should equ
 # It comes from the regression-notebook the prof shared
 # HOWEVER: I cannot run it - neither there nor on my local python. The TA managed to do it if I remember correctly 
 
+
 fitted_tree = tree.DecisionTreeClassifier(max_depth=3).fit(Xsim,ysim)
-fig=surface_scatter_plot(Xsim, ysim, lambda x: fitted_tree.predict([x]), show_f0=True)
+fig=surface_scatter_plot(Xsim, ysim, lambda x: fitted_tree.predict([x]), show_f0=True) #lamdba refers to the "anonymous" lambda funtion
 fig.show() 
 
 #--- MODEL4: random forest
@@ -262,19 +269,60 @@ for i in np.arange(1, 5): # number of trees in the forest
     #DELETE: https://machinelearningmastery.com/classification-versus-regression-in-machine-learning/
     model4.fit(X_train, y_train)
     print("model score for " + str(i) + "trees: " + str(model4.score(X_test, y_test)))
+    model4.feature_importances_
+
+
     fig=surface_scatter_plot(X_train,y_train,lambda x: forest.predict([x]), show_f0=True)
     fig.show()
 
+# drawing single decision graph no longer possible 
+# Feature importance is the average MSE decrease caused by splits on each feature.
+# If a given feature has greater importance, the trees split on that feature more often and/or splitting on that feature resulted in larger MSE decreases.
 
 
 
 ## MODEL5: neural networks.
-# Experiment with different numbers of hidden layers, and neurons for each layers, not necessarily using a cross-validation
+# Experiment with different numbers of hidden layers, and neurons for each layers, not necessarily using cross-validation
 from sklearn import neural_network
-nn = neural_network.MLPRegressor((6,), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0).fit(Xsim,ysim)
+model5 = neural_network.MLPClassifier((6,), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0)
+#‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
+# Alpha is a parameter for regularization term, aka penalty term, that combats overfitting by constraining the size of the weights.
+# https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
+model5.fit(X_test,y_test)
+
 fig=surface_scatter_plot(Xsim,ysim,lambda x: nn.predict([x]), show_f0=True)
 fig.show()
 
+# two hidden layers, with N1=30 and N2=20
+nn_model = neural_network.MLPClassifier((30, 20))
+nn_model.fit(X_test, y_test)
+#https://stackoverflow.com/questions/62658215/convergencewarning-lbfgs-failed-to-converge-status-1-stop-total-no-of-iter
+
+#ax = var_scatter(df)
+#scatter_model(nn_model, X, ax=ax)
+
+mse_nn = metrics.mean_squared_error(y, model5.predict(X))
+
+
+# Standardize 
+nn_scaled_model = pipeline.make_pipeline(
+    preprocessing.StandardScaler(),  # this will do the input scaling
+    neural_network.MLPClassifier((30, 20)) 
+)
+
+# We can now use `model` like we have used our other models all along
+# Call fit
+nn_scaled_model.fit(X_test, y_test)
+
+# Call predict
+mse_nn_scaled = metrics.mean_squared_error(y, nn_scaled_model.predict(X))
+#mse_nn / metrics.mean_squared_error(y, lr_model.predict(X)) NOT YET POSSIBLE AS LINEAR MODEL IS MISSING
+
+print(f"Unscaled mse {mse_nn}")
+print(f"Scaled mse {mse_nn_scaled}")
+
+#ax = var_scatter(df)
+#scatter_model(nn_scaled_model, X, ax=ax)
 
 #-------- ROC curves
 #Plot the ROC curves for the best versions of your models and compute the AUROC. 
