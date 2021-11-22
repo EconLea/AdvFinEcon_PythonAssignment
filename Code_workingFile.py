@@ -224,7 +224,7 @@ from sklearn import neural_network
 nn = neural_network.MLPRegressor((6,), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0).fit(Xsim,ysim)
 fig=surface_scatter_plot(Xsim,ysim,lambda x: nn.predict([x]), show_f0=True)
 fig.show()
-
+.
 
 #-------- ROC curves
 #Plot the ROC curves for the best versions of your models and compute the AUROC. 
