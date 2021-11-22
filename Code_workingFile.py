@@ -59,7 +59,13 @@ number_of_splits = 5
 kf = StratifiedKFold(n_splits=number_of_splits)
 print("number_of_splits is set to " + str(number_of_splits))
 
-
+#***********************FUNCTIONS***********************
+print("***********************FUNCTIONS***********************")
+def surface_scatter_plot(X,y,f, xlo=0., xhi=1., ngrid=50, width=860, height=700, f0=Ey_x, show_f0=False):
+    scatter = go.Scatter3d(x=X[:,0],y=X[:,1],z=y,
+                           mode='markers',
+                           marker=dict(size=2, opacity=0.3)
+                        )
 
 #***********************PREPATORY WORK***********************
 print("***********************PREPATORY WORK***********************")
@@ -177,12 +183,9 @@ print(X.columns) #little redundant as X=df
 y = df_final["crisis_warning"]
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.25)
 
-
-
 #DELETE: https://www.youtube.com/watch?v=fwY9Qv96DJY
 #train_test_split(df[['X {= something multidimensional -> 2 brackets}']], df.Y{=explanatory variable}, test_size={percentage of the sample used for testing, e.g. 0,1})
 # add "random_state=" to keep sample allocation fixed when the code is executed multiple times
-X_train, X_test, y_train, y_test = train_test_split(test_size=)
 #results we get back from train_test_split(): X_train, X_test, y_train, y_test
 
  
@@ -200,56 +203,28 @@ print("number of obs. in training data set is " + str(len(X_train))) #should equ
 
 
 #-------- Fit Model
-#--- MODEL1: logistic regression
-
-# NOTES:
-# Logistic regression predicts whether something is true or false -> discrete
-# fits a logistic function to the data -> indicates the probability of Y being true
-# = Classification technique based on MLE
-# DELETE: https://www.youtube.com/watch?v=zM4VZR0px8E
-
-#create object of the class "LogisticRegression", which we call model1
-model1= LogisticRegression()
-#Train the model
-model.fit(x_train, y_train)
-#Prediction -> returns an array of 0s and 1s, corresponding to yes/no in the order of the data returned after executing "X_test"
-model.predict(x_test)
-# -> returns an matrix corresponding to probability of being [false, true] for corresponding data point
-model.predict_proba(x_test)
-# Accuracy of the model [between 0 and 1]
-model.score(x_test, y_test)
-
-#Pickle (alternative method would be joblib from sklearn)
-with open('model_pickle', 'wb') as f: 
-    pickle.dump(model, f) #dump model into file 
-
-with open('model_pickle', 'rb') as f: 
-    mp = pickle.load(f) #mp=object
-
-#--- MODEL2: Logistic Regression with LASSO Regularization.
-# regularization parameter 
-# using a 5-fold cross validation
-
-# Which variables survive? (Exercise 5)
-
-
-
-#--- MODEL3: Random Trees
-# Experiment with different tree depths, not necessarily with a cross validation
-# DELETE: https://www.youtube.com/watch?v=PHxYNGo8NcI
-
 
 #--- MODEL4: random forest
+# DELETE: https://www.youtube.com/watch?v=ok2s1vV9XW0
+for i in np.arange(1, 5): # number of trees in the forest
+    print("number of trees is equal to "+ str(i))
+    model4=RandomForestClassifier(n_estimators=i)# use Classifier instead of Regression, as this is a classification problem!
+    #DELETE: https://machinelearningmastery.com/classification-versus-regression-in-machine-learning/
+    model4.fit(X_train, y_train)
+    print("model score for " + str(i) + "trees: " + str(model4.score(X_test, y_test)))
+    fig=surface_scatter_plot(X_train,y_train,lambda x: forest.predict([x]), show_f0=True)
+    fig.show()
+
+
+
+
 ## MODEL5: neural networks.
 # Experiment with different numbers of hidden layers, and neurons for each layers, not necessarily using a cross-validation
-# DELETE: https://www.youtube.com/watch?v=ok2s1vV9XW0
+from sklearn import neural_network
+nn = neural_network.MLPRegressor((6,), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0).fit(Xsim,ysim)
+fig=surface_scatter_plot(Xsim,ysim,lambda x: nn.predict([x]), show_f0=True)
+fig.show()
 
-model4=RandomForestClassifier()
-model.fit(X_train, y_train)
-model.score(X_test, y_test) #n_estimator shows number of trees used 
-#-> can be modified by adding n_estimators= 
-model4=RandomForestClassifier(n_estimators)
-model.score(X_test, y_test)
 
 #-------- ROC curves
 #Plot the ROC curves for the best versions of your models and compute the AUROC. 
