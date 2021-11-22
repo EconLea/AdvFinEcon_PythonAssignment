@@ -17,6 +17,7 @@ py -m pip install --upgrade pandas-datareader
 py -m pip install -U scikit-learn
 pip install openpyxl
 pip install seaborn
+pip install plotly
 
 #check whether the installation worked properly: 
 py -m pip list
@@ -26,19 +27,22 @@ for help, see: https://phoenixnap.com/kb/install-pip-windows
 """
 
 # Import the Python modules you need
+import pickle # allows us to store training date into a file
+
 import numpy as np
-import pandas as pd
-import pickle # allows us to store training date into a file 
+import pandas as pd 
+import plotly.graph_objects as go
 
 from sklearn import (
-    model_selection, linear_model, ensemble, metrics, neural_network, pipeline, model_selection
+    model_selection, linear_model, ensemble, metrics, neural_network, pipeline, model_selection, tree
 )
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import StratifiedKFold #as opposed to KFold 
+from sklearn.model_selection import StratifiedKFold #as opposed to KFold
+
 
 import matplotlib.pyplot as plt
 import seaborn as sn 
@@ -61,11 +65,47 @@ print("number_of_splits is set to " + str(number_of_splits))
 
 #***********************FUNCTIONS***********************
 print("***********************FUNCTIONS***********************")
+def Ey_x(x):
+    return 1/3*(np.sin(5*x[0])*np.sqrt(x[1])*np.exp(-(x[1]-0.5)**2))
+
 def surface_scatter_plot(X,y,f, xlo=0., xhi=1., ngrid=50, width=860, height=700, f0=Ey_x, show_f0=False):
     scatter = go.Scatter3d(x=X[:,0],y=X[:,1],z=y,
                            mode='markers',
                            marker=dict(size=2, opacity=0.3)
                         )
+
+    xgrid = np.linspace(xlo,xhi,ngrid)
+    ey = np.zeros((len(xgrid),len(xgrid)))
+    ey0 = np.zeros((len(xgrid),len(xgrid)))
+    colorscale = [[0, colors[0]], [1, colors[2]]]
+    for i in range(len(xgrid)):
+        for j in range(len(xgrid)):
+            ey[j,i] = f([xgrid[i],xgrid[j]])
+            ey0[j,i]= f0([xgrid[i],xgrid[j]])
+    
+    surface = go.Surface(x=xgrid, y=xgrid, z=ey, colorscale=colorscale, opacity=1.0)
+    if (show_f0):
+        surface0 = go.Surface(x=xgrid, y=xgrid, z=ey0, opacity=0.8, colorscale=colorscale)
+        layers = [scatter, surface, surface0]
+    else:
+        layers = [scatter, surface]
+    
+    fig = go.FigureWidget(
+        data=layers,
+        layout = go.Layout(
+            autosize=True,
+            scene=dict(
+                xaxis_title='X1',
+                yaxis_title='X2',
+                zaxis_title='Y'
+            ),
+            width=width,
+            height=height,
+            template=plotly_template,
+        )
+    )
+    return fig
+
 
 #***********************PREPATORY WORK***********************
 print("***********************PREPATORY WORK***********************")
@@ -168,14 +208,13 @@ df_final=df_copy[variables].dropna()
 df_final_withyear=df_copy[["year"]+variables].dropna()
 
 
-
-
 #***********************ANALYSIS***********************
 
+print(df.info())
 #-------- Split Sample
 # Training vs. Test (randomly assigned)
 # look at dataset to get an impression of its structure first -> df.shape will return (x1, x2), where x1=nrrows and x2=nrcolumns
-#df.shape
+df.shape()
 #df.head()
 print(df_final.columns)
 X = df_final.drop("crisis_warning", axis=1)
@@ -224,7 +263,10 @@ from sklearn import neural_network
 nn = neural_network.MLPRegressor((6,), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0).fit(Xsim,ysim)
 fig=surface_scatter_plot(Xsim,ysim,lambda x: nn.predict([x]), show_f0=True)
 fig.show()
-.
+
+fitted_tree = tree.DecisionTreeRegressor(max_depth=3).fit(Xsim,ysim)
+fig=surface_scatter_plot(Xsim, ysim, lambda x: fitted_tree.predict([x]), show_f0=True)
+fig.show() 
 
 #-------- ROC curves
 #Plot the ROC curves for the best versions of your models and compute the AUROC. 
