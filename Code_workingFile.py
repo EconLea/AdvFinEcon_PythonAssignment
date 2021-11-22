@@ -64,11 +64,12 @@ kf = StratifiedKFold(n_splits=number_of_splits)
 print("number_of_splits is set to " + str(number_of_splits))
 
 #***********************FUNCTIONS***********************
-print("***********************FUNCTIONS***********************")
+#PLEASE LOOK HERE:
+# these functions are needed to plot the trees-graphs 
 def Ey_x(x):
-    return 1/3*(np.sin(5*x[0])*np.sqrt(x[1])*np.exp(-(x[1]-0.5)**2))
+    return 1/3*(np.sin(5*x[0])*np.sqrt(x[1])*np.exp(-(x[1]-0.5)**2)) #PLEASE LOOK HERE: WTF is this for?
 
-def surface_scatter_plot(X,y,f, xlo=0., xhi=1., ngrid=50, width=860, height=700, f0=Ey_x, show_f0=False):
+def surface_scatter_plot(X,y,f, xlo=0., xhi=1., ngrid=50, width=860, height=700, f0=Ey_x, show_f0=False): #PLEASE LOOK HERE: f0=Ey_x?!
     scatter = go.Scatter3d(x=X[:,0],y=X[:,1],z=y,
                            mode='markers',
                            marker=dict(size=2, opacity=0.3)
@@ -243,6 +244,16 @@ print("number of obs. in training data set is " + str(len(X_train))) #should equ
 
 #-------- Fit Model
 
+#PLEASE LOOK HERE:
+#ANA MARGARIDAS Part 
+# We will ne this weird function "surface_scatter_plot" it's defined above in the section "functions"
+# It comes from the regression-notebook the prof shared
+# HOWEVER: I cannot run it - neither there nor on my local python. The TA managed to do it if I remember correctly 
+
+fitted_tree = tree.DecisionTreeClassifier(max_depth=3).fit(Xsim,ysim)
+fig=surface_scatter_plot(Xsim, ysim, lambda x: fitted_tree.predict([x]), show_f0=True)
+fig.show() 
+
 #--- MODEL4: random forest
 # DELETE: https://www.youtube.com/watch?v=ok2s1vV9XW0
 for i in np.arange(1, 5): # number of trees in the forest
@@ -264,9 +275,6 @@ nn = neural_network.MLPRegressor((6,), activation="logistic", verbose=True, solv
 fig=surface_scatter_plot(Xsim,ysim,lambda x: nn.predict([x]), show_f0=True)
 fig.show()
 
-fitted_tree = tree.DecisionTreeRegressor(max_depth=3).fit(Xsim,ysim)
-fig=surface_scatter_plot(Xsim, ysim, lambda x: fitted_tree.predict([x]), show_f0=True)
-fig.show() 
 
 #-------- ROC curves
 #Plot the ROC curves for the best versions of your models and compute the AUROC. 
