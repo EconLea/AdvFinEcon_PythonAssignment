@@ -27,7 +27,7 @@ for help, see: https://phoenixnap.com/kb/install-pip-windows
 """
 
 # Import the Python modules you need
-import pickle # allows us to store training date into a file
+import pickle # allows us to store training date into a file 
 
 import numpy as np
 import pandas as pd 
@@ -115,100 +115,75 @@ print("***********************PREPATORY WORK***********************")
 df=pd.read_excel(path_data, sheet_name="Data", engine='openpyxl') #engine had to be added to open xlxs file (Source: https://stackoverflow.com/questions/65250207/pandas-cannot-open-an-excel-xlsx-file)
 
 
-#Creating the desired variables in a new Data Frame
-#let's make a copy, in order to preserve the original dataset
+#let's make a copy, in order to preserve original dataset
 df_copy=df.copy()
-print("this is the original:") #added
-print(df.head()) #added
-print("this is the copy:") #added
-df_copy.head() #added
-
 #let's create new (temporary) columns with the transformed variables we need:
 #-slope of the yield curve
 df_copy["slope_yield_curve"]=df_copy["ltrate"]/100-df_copy["stir"]/100
-
-# credit: loans to the privete sector / gdp
+# credit: loans to the private sector / gdp
 df_copy["credit"]=df_copy["tloans"]/df_copy["gdp"]
-
 # debt service ratio: credit * long term interest rate
-df_copy["debt_serv_ratio"]= (df_copy["tloans"]/df_copy["gdp"])*df_copy["ltrate"]/100
-
+df_copy["debt_serv_ratio"]=(df_copy["tloans"]/df_copy["gdp"])*df_copy["ltrate"]/100
 # broad money over gdp
 df_copy["bmoney_gdp"]=df_copy["money"]/df_copy["gdp"]
-
 # current account over gdp
 df_copy["curr_acc_gdp"]=df_copy["ca"]/df_copy["gdp"]
+# Now we need to compute 1-year absolute variations and percentage variations for a few variables
+# create 1 year-variation of credit from grouped dataframe and add back to initial dataframenp.zeros
+# create 1 year-variation of debt ser ratio from grouped dataframe and add back to initial dataframe
+# create 1 year-variation of investment/gdp from grouped dataframe and add back to initial dataframe
+# create 1 year-variation of public debt/gdp from grouped dataframe and add back to initial dataframe
+# create 1 year-variation of broad money / gdp from grouped dataframe and add back to initial dataframe
+# create 1 year-variation of current / gdp from grouped dataframe and add back to initial dataframe
+
+df_copy["delta_credit"]=np.empty(len(df_copy))*np.nan
+df_copy["delta_debt_serv_ratio"]=np.empty(len(df_copy))*np.nan
+df_copy["delta_investm_ratio"]=np.empty(len(df_copy))*np.nan
+df_copy["delta_pdebt_ratio"]=np.empty(len(df_copy))*np.nan
+df_copy["delta_bmoney_gdp"]=np.empty(len(df_copy))*np.nan
+df_copy["delta_curr_acc_gdp"]=np.empty(len(df_copy))*np.nan
+df_copy["growth_cpi"]=np.empty(len(df_copy))*np.nan
+df_copy["growth_cons"]=np.empty(len(df_copy))*np.nan
 
 
-# Now we need to compute 1-year absolute variations and percentage
-# variations for a few variables
-# Obviously this must be done country-wise, so we cannot act on the
-# dataframe as it is.
-# a Convenient way of doing this is the Pandas method 'groupby()'
-df_copy_group=df_copy.groupby("iso") # 'iso' is the country code
-
-# create 1 year-variation of credit from grouped dataframe and add
-# back to initial dataframe
-df_copy["delta_credit"]=df_copy_group["credit"].diff(periods=1)
-
-# create 1 year-variation of debt ser ratio from grouped dataframe
-# and add back to initial dataframe
-df_copy["delta_debt_serv_ratio"]=df_copy_group["debt_serv_ratio"].diff(periods=1)
-
-# create 1 year-variation of investment/gdp from grouped dataframe
-# and add back to initial dataframe
-df_copy["delta_investm_ratio"]=df_copy_group["iy"].diff(periods=1)
-
-# create 1 year-variation of public debt/gdp from grouped dataframe
-# and add back to initial dataframe
-df_copy["delta_pdebt_ratio"]=df_copy_group["debtgdp"].diff(periods=1)
-
-# create 1 year-variation of broad money / gdp from grouped dataframe
-# and add back to initial dataframe
-df_copy["delta_bmoney_gdp"]=df_copy_group["bmoney_gdp"].diff(periods=1)
-
-# create 1 year-variation of current / gdp from grouped dataframe and
-# add back to initial dataframe
-df_copy["delta_curr_acc_gdp"]=df_copy_group["curr_acc_gdp"].diff(periods=1)
-
-# now we need to create new variables which are 1-year growth rates
-# of existing ones
-# we will need this function to apply to the columns of the dataframe
-def lag_pct_change(x):
-    """ Computes percentage changes """
-    lag = np.array(pd.Series(x).shift(1))
-    return ((x - lag) / lag) #brackets added
+for i in np.arange(1,len(df_copy)):
+    if (df_copy.loc[i,'iso'] == df_copy.loc[i-1,'iso']):
+        df_copy.loc[i,"delta_credit"]= df_copy.loc[i,'credit']-df_copy.loc[i-1,'credit']
+        df_copy.loc[i,"delta_debt_serv_ratio"]= df_copy.loc[i,'debt_serv_ratio']-df_copy.loc[i-1,'debt_serv_ratio']
+        df_copy.loc[i,"delta_investm_ratio"]= df_copy.loc[i,'iy']-df_copy.loc[i-1,'iy']
+        df_copy.loc[i,"delta_pdebt_ratio"]= df_copy.loc[i,'debtgdp']-df_copy.loc[i-1,'debtgdp']
+        df_copy.loc[i,"delta_bmoney_gdp"]= df_copy.loc[i,'bmoney_gdp']-df_copy.loc[i-1,'bmoney_gdp']
+        df_copy.loc[i,"delta_curr_acc_gdp"]= df_copy.loc[i,'curr_acc_gdp']-df_copy.loc[i-1,'curr_acc_gdp']
+        df_copy.loc[i,"growth_cpi"]= (df_copy.loc[i,'cpi']-df_copy.loc[i-1,'cpi'])/df_copy.loc[i-1,'cpi']
+        df_copy.loc[i,"growth_cons"]= (df_copy.loc[i,'rconpc']-df_copy.loc[i-1,'rconpc'])/df_copy.loc[i-1,'rconpc']
 
 
-# create 1 year growth rate of CPI from grouped dataframe and add
-# back to initial dataframe
-df_copy["growth_cpi"]=df_copy_group["cpi"].apply(lag_pct_change)
 
-# create 1 year growth rate of consumption per capita from grouped
-# dataframe and add back to initial dataframe
-df_copy["growth_cons"]=df_copy_group["rconpc"].apply(lag_pct_change)
+# NOW JUMP TO REMARK 2 AT THE BOTTOM IF YOU WANT TO INCLUDE GLOBAL CREDIT AND SLOPE OF THE YIELD CURVE AS PREDICTORS
 
-# low let's create the crises early warning label: a dummy variable
-# which takes value one if in the next year or two there will be a crises
-# temporary array of zeros, dimension = number of rows in database
+# low let's create the crises early warning label: a dummy variable which takes value one if in the next 
+# year or the next two years there will be a crises
+
+# temporary array of zeros, dimension number of rows in database
 temp_array=np.zeros(len(df_copy))
-
 # loop to create dummy
 for i in np.arange(0,len(df_copy)-2):
-    temp_array[i]= 1 \
-    if ( (df_copy.loc[i+1,'crisisJST']== 1) or (df_copy.loc[i+2,'crisisJST']== 1) ) else 0
+    if (df_copy.loc[i+2,'iso'] != df_copy.loc[i,'iso']):
+        temp_array[i]=np.nan
+    else:
+        temp_array[i]= 1 if ( (df_copy.loc[i+1,'crisisJST']== 1) or (df_copy.loc[i+2,'crisisJST']== 1)  ) else 0
 
 #put the dummy in the dataframe
-df_copy["crisis_warning"]=temp_array.astype("int64")
-# create a smaller dataframe including only the variables we are
-# interested in: the first ten are predictors (X) and the last one is
-#the output, or label (y). Also, drop the observations where some
-# variable is missing
+
+df_copy["crisis_warning"]=temp_array
+
+# create a smaller dataframe including only the variables we are interested in: the first ten are predictors (X) and the last one is the output, or label (y)
+# if you have created "global_slope_yield_curve" and "global_delta_credit" as in remark 2, don't forget to include them
 variables=["slope_yield_curve","delta_credit","delta_debt_serv_ratio","delta_investm_ratio","delta_pdebt_ratio","delta_bmoney_gdp","delta_curr_acc_gdp","growth_cpi","growth_cons","eq_tr","crisis_warning"]
 df_final=df_copy[variables].dropna()
+
 # let's also create a version of our dataframe which includes the year
 df_final_withyear=df_copy[["year"]+variables].dropna()
-
 
 #***********************ANALYSIS***********************
 
@@ -327,6 +302,34 @@ print(f"Scaled mse {mse_nn_scaled}")
 #-------- ROC curves
 #Plot the ROC curves for the best versions of your models and compute the AUROC. 
 #DELETE: https://www.youtube.com/watch?v=gJo0uNL-5Qw
+#See classification file
+
+def plot_roc(mod, X, y):
+    # predicted_probs is an N x 2 array, where N is number of observations
+    # and 2 is number of classes
+    predicted_probs = mod.predict_proba(X_test)
+
+    # keep the second column, for label=1
+    predicted_prob1 = predicted_probs[:, 1]
+
+    fpr, tpr, _ = metrics.roc_curve(y_test, predicted_prob1)
+
+    # Plot ROC curve
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1], "k--")
+    ax.plot(fpr, tpr)
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("ROC Curve")
+
+plot_roc(logistic_age_model, X_test, y_test)
+
+
+#AUC Value (AUROC?!)
+predicted_prob1 = logistic_age_model.predict_proba(X)[:, 1]
+auc = metrics.roc_auc_score(y, predicted_prob1)
+print(f"Initial AUC value is {auc:.4f}")
+
 
 # Cross-Validation
 from train_index, test_index in kf.split(ENTER NAME OF DATASET)
