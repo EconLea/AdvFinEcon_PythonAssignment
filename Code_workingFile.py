@@ -65,10 +65,10 @@ kf = StratifiedKFold(n_splits=number_of_splits)
 print("number_of_splits is set to " + str(number_of_splits))
 
 #***********************FUNCTIONS***********************
-#PLEASE LOOK HERE:
+#DELETE PLEASE LOOK HERE:
 # these functions are needed to plot the trees-graphs 
 def Ey_x(x):
-    return 1/3*(np.sin(5*x[0])*np.sqrt(x[1])*np.exp(-(x[1]-0.5)**2)) #PLEASE LOOK HERE: WTF is this for?
+    return 1/3*(np.sin(5*x[0])*np.sqrt(x[1])*np.exp(-(x[1]-0.5)**2)) #DELETE: PLEASE LOOK HERE: WTF is this for?
 
 def surface_scatter_plot(X,y,f, xlo=0., xhi=1., ngrid=50, width=860, height=700, f0=Ey_x, show_f0=False): #PLEASE LOOK HERE: f0=Ey_x?!
     scatter = go.Scatter3d(x=X[:,0],y=X[:,1],z=y,
@@ -161,6 +161,21 @@ for i in np.arange(1,len(df_copy)):
 
 
 # NOW JUMP TO REMARK 2 AT THE BOTTOM IF YOU WANT TO INCLUDE GLOBAL CREDIT AND SLOPE OF THE YIELD CURVE AS PREDICTORS
+#DELETE: TO BE CHECK! This was added by me from remark to, is that correct?
+
+
+# first create a temporary column including the sum of GDP for each country grouped by year of observation
+# check if the column name is actually called year
+df_copy["sum_gdp_by_year"]=df_copy.groupby("year")["gdp"].transform('sum')
+# now create a new temporary column with the slope of the yield curve for each observation multiplied
+# by the gdp weigh
+df_copy["weighted_slope"]=df_copy["slope_yield_curve"]*df_copy["gdp"]/df_copy["sum_gdp_by_year"]
+# finally create the column "global_slope_yield_curve" by summing the weighted domestic slopes,
+# after grouping observation by year
+df_copy["global_slope_yield_curve"]=df_copy.groupby("year")["weighted_slope"].transform('sum')
+
+
+#DELETE: TO BE CHECK! This was added by me from remark to, is that correct? END
 
 # low let's create the crises early warning label: a dummy variable which takes value one if in the next 
 # year or the next two years there will be a crises
@@ -186,7 +201,7 @@ df_final=df_copy[variables].dropna()
 # let's also create a version of our dataframe which includes the year
 df_final_withyear=df_copy[["year"]+variables].dropna()
 
-#DELETE: ATTENTION THIS PART HAD TO BE CHANGED!!!!!
+#DELETE: ATTENTION THE PART ABOVE HAD TO BE CHANGED!!!!!
 
 #***********************ANALYSIS***********************
 
@@ -205,7 +220,7 @@ print("X.columns")
 print(X.columns) #little redundant as X=df 
 
 y = df_final["crisis_warning"]
-X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.25)
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=percent_test)
 
 #DELETE: https://www.youtube.com/watch?v=fwY9Qv96DJY
 #train_test_split(df[['X {= something multidimensional -> 2 brackets}']], df.Y{=explanatory variable}, test_size={percentage of the sample used for testing, e.g. 0,1})
@@ -239,19 +254,43 @@ fitted_tree = tree.DecisionTreeClassifier(max_depth=3).fit(Xsim,ysim)
 fig=surface_scatter_plot(Xsim, ysim, lambda x: fitted_tree.predict([x]), show_f0=True) #lamdba refers to the "anonymous" lambda funtion
 fig.show() 
 
-#--- MODEL4: random forest
-# DELETE: https://www.youtube.com/watch?v=ok2s1vV9XW0
-for i in np.arange(1, 5): # number of trees in the forest
-    print("number of trees is equal to "+ str(i))
-    model4=RandomForestClassifier(n_estimators=i)# use Classifier instead of Regression, as this is a classification problem!
-    #DELETE: https://machinelearningmastery.com/classification-versus-regression-in-machine-learning/
-    model4.fit(X_train, y_train)
-    print("model score for " + str(i) + "trees: " + str(model4.score(X_test, y_test)))
-    model4.feature_importances_
+#DELETE: LOOK HERE: THIS IS REMARK 1 -> I think this needs to be integrated into your part somewhere 
+# The terminology 'logistic regression with LASSO regularization is a bit misleading. I should have said 'l1' regularization, 
+# used to penalize the absolute value of coefficients thus shrinking them towards zero. In order to implement this with Sklearn, 
+# you can do the following:
+
+# n_folds = 5
+# # candidate regularization parameters, smaller means heavier penalty, thus coefficients more shrinked to zero.
+# C_values = [0.001, 0.01, 0.05, 0.1, 1., 100.]
+# # define model
+# my_l1reg_logistic = LogisticRegressionCV(Cs=C_values, cv=n_folds, penalty='l1', 
+#                            refit=True, scoring='roc_auc', 
+#                            solver='liblinear', random_state=0,
+#                            fit_intercept=True)
+# # fit the model
+# my_l1reg_logistic.fit(X_train, y_train)
+# # these are already the best coefficients
+# coefs = my_l1reg_logistic.coef_
+# # mean of scores of class "1"
+# scores = my_l1reg_logistic.scores_[1]
+# mean_scores = np.mean(scores, axis=0)
+# # from this, you can visually inspect which C_value has the highest average score,
+# # thus is selected by the cross-validation
 
 
-    fig=surface_scatter_plot(X_train,y_train,lambda x: forest.predict([x]), show_f0=True)
-    fig.show()
+# #--- MODEL4: random forest
+# # DELETE: https://www.youtube.com/watch?v=ok2s1vV9XW0
+# for i in np.arange(1, 5): # number of trees in the forest
+#     print("number of trees is equal to "+ str(i))
+#     model4=RandomForestClassifier(n_estimators=i)# use Classifier instead of Regression, as this is a classification problem!
+#     #DELETE: https://machinelearningmastery.com/classification-versus-regression-in-machine-learning/
+#     model4.fit(X_train, y_train)
+#     print("model score for " + str(i) + "trees: " + str(model4.score(X_test, y_test)))
+#     model4.feature_importances_
+
+
+#     fig=surface_scatter_plot(X_train,y_train,lambda x: forest.predict([x]), show_f0=True)
+#     fig.show()
 
 # drawing single decision graph no longer possible 
 # Feature importance is the average MSE decrease caused by splits on each feature.
