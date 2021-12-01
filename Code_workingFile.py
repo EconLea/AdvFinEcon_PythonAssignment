@@ -115,6 +115,7 @@ print("***********************PREPATORY WORK***********************")
 df=pd.read_excel(path_data, sheet_name="Data", engine='openpyxl') #engine had to be added to open xlxs file (Source: https://stackoverflow.com/questions/65250207/pandas-cannot-open-an-excel-xlsx-file)
 
 
+#DELETE: ATTENTION THIS PART HAD TO BE CHANGED!!!!!
 #let's make a copy, in order to preserve original dataset
 df_copy=df.copy()
 #let's create new (temporary) columns with the transformed variables we need:
@@ -184,6 +185,8 @@ df_final=df_copy[variables].dropna()
 
 # let's also create a version of our dataframe which includes the year
 df_final_withyear=df_copy[["year"]+variables].dropna()
+
+#DELETE: ATTENTION THIS PART HAD TO BE CHANGED!!!!!
 
 #***********************ANALYSIS***********************
 
