@@ -47,6 +47,11 @@ import itertools
 import matplotlib.pyplot as plt
 import seaborn as sn 
 
+import qeds 
+qeds.themes.mpl_style();
+plotly_template = qeds.themes.plotly_template()
+colors = qeds.themes.COLOR_CYCLE
+
 
 #***********************PARAMETRIZATION***********************
 print("***********************PARAMETRIZATION***********************")
@@ -64,17 +69,22 @@ number_of_splits = 5
 kf = StratifiedKFold(n_splits=number_of_splits)
 print("number_of_splits is set to " + str(number_of_splits))
 
+
+
+
 #***********************FUNCTIONS***********************
 #DELETE PLEASE LOOK HERE:
 # these functions are needed to plot the trees-graphs 
 
 
 def surface_scatter_plot(X,y,f, ngrid=50, width=860, height=700): 
-    scatter = go.Scatter3d(x=X[:,0],y=X[:,1],z=y,
+    scatter = go.Scatter3d(x=X.iloc[:,0],y=X.iloc[:,1],z=y, #X[:, 0] only works for numpy arrays, not for pandas dataframes
                            mode='markers',
                            marker=dict(size=2, opacity=0.3)
                         )
 
+    xlo=X.min()
+    xhi=X.max()
     xgrid = np.linspace(xlo,xhi,ngrid)
     ey = np.zeros((len(xgrid),len(xgrid)))
     colorscale = [[0, colors[0]], [1, colors[2]]]
@@ -321,17 +331,17 @@ nrneurons_2ndlayer = np.array([100, 500, 1000])
 # The ith element represents the number of neurons in the ith hidden layer.
 
 
-#‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
+#‘adam’ is an optimizer in the family of quasi-Newton methods.
 # Alpha is a parameter for regularization term, aka penalty term, that combats overfitting by constraining the size of the weights.
 # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
 
 for i, j in itertools.product(nrneurons_1stlayer, nrneurons_2ndlayer): #cartesian product 
     print("we  look at the following combinations of neurons per layer: " + str(i) + "+" + str(j)
 
-for i, j in itertools.product(nrneurons_1stlayer, nrneurons_2ndlayer): 
+for i, j in itertools.product(nrneurons_1stlayer, nrneurons_2ndlayer): #cartesian product
      print("number of hiddenlayers is equal to "+ str(hiddenlayers))
      print("number of neurons per layer is equal to "+ str(i) + "and "+ str(j) + "respect.")
-     model5=neural_network.MLPClassifier((i, j), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0)
+     model5=neural_network.MLPClassifier((i, j), activation="logistic", verbose=True, solver="adam", alpha=0.0)
      model5.fit(X_train, y_train)
      mse_model5 = metrics.mean_squared_error(y, model5.predict(X))
      print(str(mse_model5))
@@ -343,7 +353,7 @@ nrneurons_1stlayer = np.array([100, 500, 1000])
 for i in nrneurons_1stlayer: 
      print("number of hiddenlayers is equal to "+ str(hiddenlayers))
      print("number of neurons per layer is equal to "+ str(i))
-     model5=neural_network.MLPClassifier((i), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0)
+     model5=neural_network.MLPClassifier((i), activation="logistic", verbose=True, solver="adam", alpha=0.0)
      model5.fit(X_train, y_train)
      mse_model5 = metrics.mean_squared_error(y, model5.predict(X))
      print(str(mse_model5))
@@ -353,7 +363,7 @@ for i in nrneurons_1stlayer:
 #fig.show()
 
 
-#https://stackoverflow.com/questions/62658215/convergencewarning-lbfgs-failed-to-converge-status-1-stop-total-no-of-iter
+#https://stackoverflow.com/questions/62658215/convergencewarning-adam-failed-to-converge-status-1-stop-total-no-of-iter
 
 # Standardize 
 print("STANDARDIZATION")
@@ -370,14 +380,27 @@ for i in nrneurons_1stlayer:
      print("number of neurons per layer is equal to "+ str(i))
      model5_scaled=pipeline.make_pipeline(
         preprocessing.StandardScaler(),  # this will do the input scaling
-        neural_network.MLPClassifier((i), activation="logistic", verbose=True, solver="lbfgs", alpha=0.0)
+        neural_network.MLPClassifier((i), activation="logistic", verbose=True, solver="adam", alpha=0.0)
         )
      model5_scaled.fit(X_train, y_train)
      mse_model5_scaled = metrics.mean_squared_error(y, model5_scaled.predict(X))
      print(str(mse_model5_scaled))
 
 
+#using sklearn.metrics.accuracy_score
+#https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
 #mse_nn / metrics.mean_squared_error(y, lr_model.predict(X)) NOT YET POSSIBLE AS LINEAR MODEL IS MISSING
+
+for i in nrneurons_1stlayer: 
+     print("number of hiddenlayers is equal to "+ str(hiddenlayers))
+     print("number of neurons per layer is equal to "+ str(i))
+     model5_scaled=pipeline.make_pipeline(
+        preprocessing.StandardScaler(),  # this will do the input scaling
+        neural_network.MLPClassifier((i), activation="logistic", verbose=True, solver="adam", alpha=0.0)
+        )
+     model5_scaled.fit(X_train, y_train)
+     accuracy_model5_scaled = metrics.accuracy_score(y, model5_scaled.predict(X))
+     print(str(accuracy_model5_scaled))
 
 print(f"Unscaled mse {mse_model5}")
 print(f"Scaled mse {mse_model5_scaled}")
