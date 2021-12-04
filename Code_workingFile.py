@@ -320,7 +320,7 @@ for i in np.arange(1, 5): # number of trees in the forest
 # If a given feature has greater importance, the trees split on that feature more often and/or splitting on that feature 
 # resulted in larger MSE decreases.
 
-
+# plt.barh(boston.feature_names, rf.feature_importances_)
 
 ## MODEL5: neural networks.
 # Experiment with different numbers of hidden layers, and neurons for each layers, not necessarily using cross-validation
@@ -444,6 +444,7 @@ for train_index, test_index in kf.split(df_final):
 #Plot the true value of y against the prediced value 
 y_predicted = model.predict(X_test)
 cm = confusion_matrix(y_test, y_predicted)
+#417 in total -> why
 
 %matplotlib inline
 plt.figure(figsize=(10,7))
